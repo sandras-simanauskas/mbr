@@ -152,9 +152,9 @@ times	10				db	0				; Optional unique disk ID.
 
 partition_table:
 	;		active flag,	starting head,	starting sector,	starting cylinder,	system ID,	ending head,	ending sector,	ending cylinder,	relative sector,	sectors in partition
-	partition	inactive,	0, 		2,			0,			0,		0,		0,		0,			0,			1
+	partition	active,		0, 		2,			0,			0,		0,		0,		0,			0,			1
 	partition	inactive,	0,		3,			0,			0,		0,		0,		0,			0,			1
 	partition	inactive,	0,		4,			0,			0,		0,		0,		0,			0,			1
-	partition	active,		0,		5,			0,			0,		0,		0,		0,			0,			1
+	partition	inactive,	0,		5,			0,			0,		0,		0,		0,			0,			1
 
 					dw	0xAA55				; Boot signature.
