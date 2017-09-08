@@ -1,14 +1,11 @@
 all:
 	nasm -f bin -o mbr mbr.s
-	nasm -f bin -o vbr1 vbr1.s
-	nasm -f bin -o vbr2 vbr2.s
-	nasm -f bin -o vbr3 vbr3.s
-	nasm -f bin -o vbr4 vbr4.s
-	cat	mbr vbr1 vbr2 vbr3 vbr4 > disk
-	rm	mbr vbr1 vbr2 vbr3 vbr4
+	nasm -f bin -o vbr vbr.s
+	cat	mbr vbr > disk
+	rm	mbr vbr
 
 clean:
 	rm disk
 
 run:	all
-	qemu-system-i386 -hda disk
+	qemu-system-x86_64 -hda disk
