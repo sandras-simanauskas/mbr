@@ -4,7 +4,7 @@ BITS	16
 	mov	eax,	0x80000001
 	cpuid
 	test	edx,	0x20000000
-	jnz	print.hang
+	jnz	hang
 
 	mov	si,	message
 
@@ -13,11 +13,11 @@ print:	mov	ah,	0x0E			; Select bios function,
 	mov	bl,	0			; and foreground color.
 .loop:	lodsb					; Load byte to print,
 	or	al,	al			; if the byte is 0
-	jz	.hang				; return,
+	jz	hang				; return,
 	int	0x10				; else print the character
 	jmp	.loop				; and loop.
-.hang:	hlt
-	jmp	.hang
+hang:	hlt
+	jmp	hang
 
 message:		db	"Long Mode not available!", 0
 
