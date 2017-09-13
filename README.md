@@ -1,4 +1,3 @@
 # sis
-* Initially targeting x64.
+* Initially targeting x86-64.
 * Requires dedicated disk.
-* One partition.
