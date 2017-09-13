@@ -27,45 +27,34 @@ bits	16
 start:
 
 ; Enable A20.
-; Disable keyboard.
 
 	call	empty_8042
-	mov	al,		0xAD
+	mov	al,		0xAD				; Disable keyboard.
 	out	0x64,		al
-
-; Read from input.
 
 	call	empty_8042
-	mov	al,		0xD0
+	mov	al,		0xD0				; Read from input.
 	out	0x64,		al
-
-; Get data.
 
 full_8042:
 	in	al,	0x64
 	test	al,	1
 	jz	full_8042
 
-	in	al,		0x60
+	in	al,		0x60				; Get data.
 	push	eax
 
-; Write to output.
-
 	call	empty_8042
-	mov	al,		0xD1
+	mov	al,		0xD1				; Write to output.
 	out	0x64,		al
-
-; Set A20 enable bit.
 
 	call	empty_8042
 	pop	eax
-	or	al,		2
+	or	al,		2				; Set A20 enable bit.
 	out	0x60,		al
 
-; Enable keyboard.
-
 	call	empty_8042
-	mov	al,		0xAE
+	mov	al,		0xAE				; Enable keyboard.
 	out	0x64,		al
 
 	call	empty_8042
