@@ -23,6 +23,8 @@ bits	16
 	mov	ss,		ax
 	mov	sp,		0x7C00
 
+; Canonicalize cs:ip.
+
 	jmp	0:start
 start:
 
