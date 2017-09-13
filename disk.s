@@ -4,13 +4,16 @@ bits	16
 	cli
 	cld
 
-	; Disable cursor.
-	mov	dx,		0x03d4
-	mov	al,		0x0a
+; Disable cursor.
+
+	mov	dx,		0x03D4
+	mov	al,		0x0A
 	out	dx,		al 
 	inc	dx
-	mov	al,		0x3f
+	mov	al,		0x3F
 	out	dx,		al
+
+; Set segments and stack.
 
 	xor	eax,		eax
 	mov	ds,		ax
@@ -23,6 +26,54 @@ bits	16
 	jmp	0:start
 start:
 
+; Enable A20.
+; Disable keyboard.
+
+	call	empty_8042
+	mov	al,		0xAD
+	out	0x64,		al
+
+; Read from input.
+
+	call	empty_8042
+	mov	al,		0xD0
+	out	0x64,		al
+
+; Get data.
+
+full_8042:
+	in	al,	0x64
+	test	al,	1
+	jz	full_8042
+
+	in	al,		0x60
+	push	eax
+
+; Write to output.
+
+	call	empty_8042
+	mov	al,		0xD1
+	out	0x64,		al
+
+; Set A20 enable bit.
+
+	call	empty_8042
+	pop	eax
+	or	al,		2
+	out	0x60,		al
+
+; Enable keyboard.
+
+	call	empty_8042
+	mov	al,		0xAE
+	out	0x64,		al
+
+	call	empty_8042
+
+
+; Clear the Paging Structure buffer.
+
+	xor	eax,		eax
 	mov	edi,		0x1000
 	push	di
 	mov	ecx,		0x1000
@@ -80,6 +131,14 @@ build_page_table:
 	lgdt	[gdt]					; Load GDT.Pointer defined below.
 
 	jmp	8:long_mode				; Load CS with 64 bit segment and flush the instruction cache 
+
+; Helper functions.
+
+empty_8042:
+        in      al,0x64
+        test    al,2
+        jnz     empty_8042
+        ret
 
 bits	64
 
