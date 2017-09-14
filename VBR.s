@@ -1,8 +1,7 @@
+; VBR.s - Volume Boot Record.
+
 org	0x7C00
 bits	16
-
-	cli				; Disable interrupts. Re-enable them once the IDT is set up.
-	cld				; Ensure the Direction Flag points up for string operations.
 
 ; Disable VGA hardware cursor.
 
@@ -13,19 +12,9 @@ bits	16
 	mov al, 0x3F
 	out dx, al
 
-; Set segments and stack.
-
-	xor ax, ax
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
-	mov sp, 0x7C00
-
 ; For now we use the classical method of enabling the A20 gate.
 
-	call 0:wait_8042_empty		; Wait for the 8042 input register to become empty while also canonicalizing cs:ip with a long call.
+	call wait_8042_empty		; Wait for the 8042 input register to become empty.
 	mov al, 0xAD			; Command to disable keyboard interfaces.
 	out 0x64, al			; Send the command.
 
@@ -103,8 +92,6 @@ build_page_table:
 
 	jmp 8:long_mode			; Load cs with 64 bit segment and flush the instruction cache by long jumping.
 
-; 16-bit subroutines.
-
 wait_8042_empty:			; We wait until the 8042 input register is empty.
 	in al, 0x64			; Read 8042 status register.
 	test al, 2			; Bit 1 set means input register (0x60/0x64) has data for 8042.
@@ -138,5 +125,6 @@ gdt:	dw 23
 	dq 0x00209A0000000000
 	dq 0x0000920000000000
 
-times	510 - ($ - $$)	db 0		; Pad.
-			dw 0xAA55	; Boot signature.
+times	510-($-$$) db 0
+
+dw 0xAA55				; VBR boot signature.
