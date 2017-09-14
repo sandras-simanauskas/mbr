@@ -1,8 +1,8 @@
 org	0x7C00
 bits	16
 
-	cli				; Disable interrupts. Re-enbale them once the IDT is set up.
-	cld				; Ensure the direction flag points up.
+	cli				; Disable interrupts. Re-enable them once the IDT is set up.
+	cld				; Ensure the Direction Flag points up for string operations.
 
 ; Disable VGA hardware cursor.
 
@@ -23,7 +23,7 @@ bits	16
 	mov ss, ax
 	mov sp, 0x7C00
 
-; For now we use the classic method of enabling A20 gate.
+; For now we use the classical method of enabling the A20 gate.
 
 	call 0:wait_8042_empty		; Wait for the 8042 input register to become empty while also canonicalizing cs:ip with a long call.
 	mov al, 0xAD			; Command to disable keyboard interfaces.
@@ -54,31 +54,24 @@ wait_8042_full:				; We wait until the data is ready for us to read. Can also wo
 	mov al, 0xAE			; Command to enable keyboard interfaces.
 	out 0x64, al			; Send the command.
 
-	call wait_8042_empty		; We wait until 8042 has read our command.
+	call wait_8042_empty		; We wait until 8042 has read our command and continue.
 
-; Clear the Paging Structure buffer.
+; Build Paging Structures.
 
-	xor eax, eax
-	mov edi, 0x00001000
-	mov ecx, 0x00001000
+	xor eax, eax			; Clear the Paging Structure buffer.
+	mov edi, 0x00001000		; Buffer address.
+	mov ecx, 0x00001000		; 0x00001000 dwords.
+rep	stosd				; Store.
 
-rep	stosd
+	mov dword [0x1000], 0x00002003	; Store the address of the Page Directory Pointer Table with present and writable flags set as the first Page Map Level 4 entry.
 
-; Build the Page Map Level 4.
+	mov dword [0x2000], 0x00003003	; Store the address of the Page Directory with present and writable flags set as the first Page Directory Pointer Table entry.
 
-	mov dword [0x1000], 0x00002003	; Store the address of the Page Directory Pointer Table with present and writable flags set as the first PML4E.
-
-; Build the Page Directory Pointer Table.
-
-	mov dword [0x2000], 0x00003003	; Store the address of the Page Directory with present and writable flags set as the first PDPTE.
-
-; Build the Page Directory.
-
-	mov dword [0x3000], 0x00004003	; Store to address of the Page Table with present and writable flags set as the first PDE.
+	mov dword [0x3000], 0x00004003	; Store to address of the Page Table with present and writable flags set as the first Page Directory entry.
 
 ; Build the Page Table.
 
-	mov di, 0x4000			; Point di to the page table.
+	mov di, 0x4000			; Point di to the Page Table.
 	mov eax, 0x00000003		; Point eax to 0 with present and writable flags set.
 
 build_page_table:
