@@ -123,7 +123,7 @@ long_mode:
 
 ; Blank the screen.
 
-	mov edi, 0xB8000
+	mov rdi, 0x00000000000B8000
 	mov rcx, 500
 	mov rax, 0x1F201F201F201F20
 rep	stosq
@@ -138,7 +138,5 @@ gdt:	dw 23
 	dq 0x00209A0000000000
 	dq 0x0000920000000000
 
-; Pad and add signature.
-
-times	510 - ($ - $$)	db 0
-			dw 0xAA55
+times	510 - ($ - $$)	db 0		; Pad.
+			dw 0xAA55	; Boot signature.
