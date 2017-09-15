@@ -25,7 +25,7 @@ org	0x7A00
 bits	16
 cpu	8086
 
-	cli						; Disable interrupts. Re-enable them once the IDT is set up.
+	cli						; Clear interrupts. Re-enable them once the IDT is set up.
 
 ; Set segments and stack.
 
