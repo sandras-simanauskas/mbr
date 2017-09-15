@@ -1,4 +1,5 @@
 #!/bin/sh
+cd x86
 nasm -f bin -o MBR MBR.s
 nasm -f bin -o VBR VBR.s
 cat MBR VBR > disk
