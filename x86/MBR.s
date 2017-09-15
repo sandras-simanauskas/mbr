@@ -3,42 +3,42 @@ bits	16
 cpu	8086
 
 %macro	check 1
-	cmp byte [0x7A00+%1], 0x80
-	jne $+7
-	inc cl			; Count of active partitions in cl.
-	mov si, 0x7A00+%1	; Last (only) active partition in si.
+	cmp byte [0x7A00+%1], 0x80	; Active flag set?
+	jne $+7				; If not jump over this macro.
+	inc cl				; Count of active partitions in cl.
+	mov si, 0x7A00+%1		; Last (only) active partition in si.
 %endmacro
 
-	cli
+	cli				; Clear interrupts.
 
 ; Set segments and stack.
 
-	xor cx, cx
-	mov ds, cx
-	mov es, cx
-	mov ss, cx
-	mov sp, 0x7A00
+	xor cx, cx			; We will need cl cleared when relocating.
+	mov ds, cx			; Data segment.
+	mov es, cx			; Extra segment.
+	mov ss, cx			; Stack segment.
+	mov sp, 0x7A00			; Stack pointer.
 
 ; Relocate self to 0x7A00.
 
-	mov ch, 1
-	mov si, 0x7C00
-	mov di, sp
-	cld
-rep	movsw
+	mov ch, 1			; Together with the cleared cl that makes 0x100.
+	mov si, 0x7C00			; Source.
+	mov di, sp			; Destination. Stack from the start of our code down.
+	cld				; Clear direction flag for (future) string operations.
+rep	movsw				; Move words.
 
-	jmp 0:$+5		; Canonicalize cs:ip by far-jumping.
+	jmp 0:$+5			; Canonicalize cs:ip by far-jumping.
 
 ; Check for active partition flag.
 
-	check 0x1BE
-	check 0x1CE
-	check 0x1DE
-	check 0x1EE
+	check 0x1BE			; Check partition 1 active flag.
+	check 0x1CE			; Check partition 2 active flag.
+	check 0x1DE			; Check partition 3 active flag.
+	check 0x1EE			; Check partition 4 active flag.
 
-	cmp cl, 1		; How many active partitions were there:
-	jl error0		; * too few?
-	jg error1		; * too many?
+	cmp cl, 1			; How many active partitions were there:
+	jl error0			; * too few?
+	jg error1			; * too many?
 
 ; Head.
 
@@ -58,19 +58,19 @@ rep	movsw
 
 ; Load VBR.
 
-	mov ah, 2
-	mov al, 1
-	mov bx, 0x7C00
-	int 0x13
+	mov ah, 2			; Select BIOS disk read function.
+	mov al, 1			; Number of sectors to read.
+	mov bx, 0x7C00			; Destination.
+	int 0x13			; Read.
 
-	jc error2		; Load successful?
+	jc error2			; Read successful?
 
 ; Check boot signature.
 
 	cmp word [0x7DFE], 0xAA55
 	jne error3
 
-	jmp 0x7C00		; Jump to VBR.
+	jmp 0x7C00			; Jump to VBR.
 
 error0:	mov si, message0
 	jmp print
@@ -85,14 +85,14 @@ error3:	mov si, message3
 
 ; Fallthrough.
 
-print:	mov ah, 0xE
-	mov bh, 0
-	mov bl, 0
-.loop:	lodsb
-	or al, al
-	jz hang
-	int 0x10
-	jmp .loop
+print:	mov ah, 0xE			; Select BIOS print function.
+	mov bh, 0			; Page number.
+	mov bl, 0x7			; Color.
+.loop:	lodsb				; Load byte to print.
+	or al, al			; If zero.
+	jz hang				; Terminate.
+	int 0x10			; Else print.
+	jmp .loop			; Next byte.
 
 hang:	hlt
 
@@ -100,14 +100,14 @@ message0: db "No active partition!",  0
 message1: db "More than one active partition!", 0
 
 times	0xDA-($-$$) dd 0
-	dw 0			; Always zero.
-	dd 0			; Disk timestamp.
+	dw 0				; Always zero.
+	dd 0				; Disk timestamp.
 
 message2: db "Can not read Volume Boot Record from disk!", 0
 message3: db "Volume Boot Record has wrong boot signature!", 0
 
 times	0x1B4-($-$$) db 0
-times	0xA db 0		; Optional unique disk ID.
-times	0x40 db 0		; Partition table.
+times	0xA db 0			; Optional unique disk ID.
+times	0x40 db 0			; Partition table.
 
-	dw 0xAA55		; Boot signature.
+	dw 0xAA55			; Boot signature.
