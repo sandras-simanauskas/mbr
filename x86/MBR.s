@@ -25,7 +25,7 @@ org	0x7A00
 bits	16
 cpu	8086
 
-	cli						; Clear interrupts. Re-enable them once the IDT is set up.
+	cli						; Disable interrupts. Re-enable them once the IDT is set up.
 
 ; Set segments and stack.
 
@@ -97,8 +97,7 @@ error2:	mov si, message2
 
 error3:	mov si, message3
 
-; Fallthrough.
-; We do not return from print to simplify its implementation.
+; Fallthrough to print from which we do not return to simplify its implementation.
 
 print:	mov ah, 0x0E					; Select bios function.
 	mov bh, 0					; Page number.
@@ -111,10 +110,15 @@ print:	mov ah, 0x0E					; Select bios function.
 
 hang:	hlt
 
-message0: db "MBR: Error: No active partition.",  0
-message1: db "MBR: Error: More than one active partition.", 0
-message2: db "MBR: Error: Can not read Volume Boot Record from disk.", 0
-message3: db "MBR: Error: Volume Boot Record has wrong boot signature.", 0
+message0: db "No active partition.",  0
+message1: db "More than one active partition.", 0
+
+; Disk timestamp.
+
+times	220-($-$$) dd 0
+
+message2: db "Can not read Volume Boot Record from disk.", 0
+message3: db "Volume Boot Record has wrong boot signature.", 0
 
 times	0x01B4-($-$$) db 0				; Fill with zeros up to the start of the data structures.
 
