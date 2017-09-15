@@ -38,13 +38,9 @@ rep	movsw
 	check 0x1DE
 	check 0x1EE
 
-; How many active partitions were there:
-; * too few?
-; * too many?
-
-	cmp cx, 1
-	jl error0
-	jg error1
+	cmp cl, 1		; How many active partitions were there:
+	jl error0		; * too few?
+	jg error1		; * too many?
 
 ; Head.
 
@@ -69,15 +65,14 @@ rep	movsw
 	mov bx, 0x7C00
 	int 0x13
 
-	jc error2
+	jc error2		; Load successful?
 
-; Check VBR boot signature.
-; Jump if valid.
+; Check boot signature.
 
 	cmp word [0x7DFE], 0xAA55
 	jne error3
 
-	jmp 0x7C00
+	jmp 0x7C00		; Jump to VBR.
 
 error0:	mov si, message0
 	jmp print
@@ -90,7 +85,7 @@ error2:	mov si, message2
 
 error3:	mov si, message3
 
-; Fallthrough to print from which we do not return to simplify its implementation.
+; Fallthrough.
 
 print:	mov ah, 0xE
 	mov bh, 0
@@ -106,30 +101,15 @@ hang:	hlt
 message0: db "No active partition!",  0
 message1: db "More than one active partition!", 0
 
-; Pad up to disk timestamp.
-
 times	0xDA-($-$$) dd 0
-
-; Disk timestamp.
-
-	dw 0
-	dd 0
+	dw 0			; Always zero.
+	dd 0			; Disk timestamp.
 
 message2: db "Can not read Volume Boot Record from disk!", 0
 message3: db "Volume Boot Record has wrong boot signature!", 0
 
-; Fill with zeros up to the start of the data structures.
-
 times	0x1B4-($-$$) db 0
+times	0xA db 0		; Optional unique disk ID.
+times	0x40 db 0		; Partition table.
 
-; Optional unique disk ID.
-
-times	0xA db 0
-
-; Partition table.
-
-times	0x40 db 0
-
-; Boot signature.
-
-	dw 0xAA55
+	dw 0xAA55		; Boot signature.
