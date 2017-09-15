@@ -5,7 +5,7 @@ int	main(void){
 	char	entry[16]={0x80, 0, 2, 0, 0,0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
 	if((file = fopen("disk", "rb+"))==NULL){
-		printf("Error: Can not open \"disk\"!\n");
+		printf("Error: Can not open \"disk\"!\n		");
 		return 1;
 	}
 
