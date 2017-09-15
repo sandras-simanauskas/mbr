@@ -97,7 +97,8 @@ error2:	mov si, message2
 
 error3:	mov si, message3
 
-; Fallthrough to print from which we do not return to simplify its implementation.
+; Fallthrough.
+; We do not return from print to simplify its implementation.
 
 print:	mov ah, 0x0E					; Select bios function.
 	mov bh, 0					; Page number.
