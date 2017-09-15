@@ -32,8 +32,6 @@ cpu	8086
 	xor cx, cx					; We will need CL cleared later.
 	mov ds, cx
 	mov es, cx
-	mov fs, cx
-	mov gs, cx
 	mov ss, cx
 	mov sp, 0x7A00
 
