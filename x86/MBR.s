@@ -20,6 +20,7 @@ cpu	8086
 	mov sp, 0x7A00
 
 ; Relocate self to 0x7A00.
+; Canonicalize cs:ip by far-jumping.
 
 	mov ch, 1
 	mov si, 0x7C00
@@ -71,6 +72,7 @@ rep	movsw
 	jc error2
 
 ; Check VBR boot signature.
+; Jump if valid.
 
 	cmp word [0x7DFE], 0xAA55
 	jne error3
