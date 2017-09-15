@@ -5,8 +5,8 @@ cpu	8086
 %macro	check 1
 	cmp byte [0x7A00+%1], 0x80
 	jne $+7
-	inc cl
-	mov si, 0x7A00+%1
+	inc cl			; Count of active partitions in cl.
+	mov si, 0x7A00+%1	; Last (only) active partition in si.
 %endmacro
 
 	cli
@@ -20,18 +20,16 @@ cpu	8086
 	mov sp, 0x7A00
 
 ; Relocate self to 0x7A00.
-; Canonicalize cs:ip by far-jumping.
 
 	mov ch, 1
 	mov si, 0x7C00
 	mov di, sp
 	cld
 rep	movsw
-	jmp 0:$+5
+
+	jmp 0:$+5		; Canonicalize cs:ip by far-jumping.
 
 ; Check for active partition flag.
-; Count of active partitions in cl.
-; Last (only) active partition in si.
 
 	check 0x1BE
 	check 0x1CE
