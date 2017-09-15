@@ -1,56 +1,43 @@
-; MBR.s - Master Boot Record.
+; MBR.S - Master Boot Record in Assembly.
 
-%macro	check 1
-	cmp byte [0x7A00+%1], 0x80
+%MACRO	check 1
+	cmp byte [7A00h+%1], 80h
 	jne $+7
 
 	inc cl
-	mov si, 0x7A00+%1
+	mov si, 7A00h+%1
 %endmacro
 
-%macro	partition 10					; 16 byte structure.
-	db %1						; Boot indicator bit flag (0x80 = active).
-	db %2						; Head.
-	db (%3 & 00111111b) | ((%4 >> 2) & 11000000b)	; Bits 0-5: sector, bits 6-7: upper two bits of cylinder.
-	db %4						; Lower 8 bits of cylinder.
-	db %5						; System ID.
-	db %6						; Ending Head
-	db (%7 & 00111111b) | ((%8 >> 2) & 11000000b)	; Bits 0-5: ending sector, bits 6-7: upper two bits of ending cylinder.
-	db %8						; Lower 8 bits of cylinder.
-	dd %9						; Relative Sector (to start of partition -- also equals the partition's starting LBA value)
-	dd %10						; Total sectors in partition.
-%endmacro
-
-org	0x7A00
+org	7A00h
 bits	16
 cpu	8086
 
-	cli						; Disable interrupts. Re-enable them once the IDT is set up.
+	cli						; Clear interrupts. Re-enable them once the IDT is set up.
 
 ; Set segments and stack.
 
-	xor cx, cx					; We will need CL cleared later.
+	xor cx, cx					; We will need cl cleared later.
 	mov ds, cx
 	mov es, cx
 	mov ss, cx
-	mov sp, 0x7A00
+	mov sp, 7A00h
 
-; Relocate self to 0x7A00.
+; Relocate self to 7A00h.
 
-	mov ch, 1					; CL is cleared. Move 0x0100 words.
-	mov si, 0x7C00					; Source.
+	mov ch, 1					; Move 0x0100 words, cl is cleared.
+	mov si, 7C00h					; Source.
 	mov di, sp					; Destination. Bottom of relocation point is top of stack.
 	cld						; Ensure the Direction Flag points up for (future) string operations.
 rep	movsw						; Move words.
-	jmp 0:$+5					; Canonicalize CS:IP by far-jumping to relocated code.
+	jmp 0:$+5					; Canonicalize cs:ip by far-jumping to relocated code.
 
-; We will count active partitions in CX as we scan the partition table. CX = 0 from the last MOVSW.
+; We will count active partitions in cx as we scan the partition table. cx = 0 from the last MOVSW.
 ; Unrolled loop for simplicity.
 
-	check 0x01BE
-	check 0x01CE
-	check 0x01DE
-	check 0x01EE
+	check 01BEh
+	check 01CEh
+	check 01DEh
+	check 01EEh
 
 	cmp cx, 1					; How many active partitions were there -
 	jl error0					; - too few?
@@ -64,7 +51,7 @@ rep	movsw						; Move words.
 
 	mov ax, [si+2]
 	mov cl, al
-	and cl, 00111111b
+	and cl, 3Fh
 
 ; Cylinder.
 
@@ -110,24 +97,18 @@ print:	mov ah, 0x0E					; Select bios function.
 
 hang:	hlt
 
-message0: db "No active partition.",  0
-message1: db "More than one active partition.", 0
+message0: db "No active partition!",  0
+message1: db "More than one active partition!", 0
 
-; Disk timestamp.
+times	220-($-$$) dd 0					; Disk timestamp.
 
-times	220-($-$$) dd 0
-
-message2: db "Can not read Volume Boot Record from disk.", 0
-message3: db "Volume Boot Record has wrong boot signature.", 0
+message2: db "Can not read Volume Boot Record from disk!", 0
+message3: db "Volume Boot Record has wrong boot signature!", 0
 
 times	0x01B4-($-$$) db 0				; Fill with zeros up to the start of the data structures.
 
 times	10 db 0						; Optional unique disk ID.
 
-;		active flag,	starting head,	starting sector,	starting cylinder,	system ID,	ending head,	ending sector,	ending cylinder,	relative sector,	sectors in partition
-partition	0x80,		0,		2,			0,			0,		0,		0,		0,			0,			1
-partition	0,		0, 		0,			0,			0,		0,		0,		0,			0,			0
-partition	0,		0, 		0,			0,			0,		0,		0,		0,			0,			0
-partition	0,		0,		0,			0,			0,		0,		0,		0,			0,			0
+times	8 dq 0						; Partition table.
 
 dw 0xAA55						; MBR boot signature.
