@@ -2,11 +2,27 @@ org	0x7A00
 bits	16
 cpu	8086
 
+%define active 0x80
+%define inactive 0
+
 %macro	check 1
 	cmp byte [0x7A00+%1], 0x80	; Active flag set?
 	jne $+7				; If not jump over this macro.
 	inc cl				; Count of active partitions in cl.
 	mov si, 0x7A00+%1		; Last (only) active partition in si.
+%endmacro
+
+%macro	partition	10							; 16 byte structure.
+			db	%1						; Boot indicator bit flag (0x80 = active).
+			db	%2						; Head.
+			db	(%3 & 00111111b) | ((%4 >> 2) & 11000000b)	; Bits 0-5: sector, bits 6-7: upper two bits of cylinder.
+			db	%4						; Lower 8 bits of cylinder.
+			db	%5						; System ID.
+			db	%6						; Ending Head
+			db	(%7 & 00111111b) | ((%8 >> 2) & 11000000b)	; Bits 0-5: ending sector, bits 6-7: upper two bits of ending cylinder.
+			db	%8						; Lower 8 bits of cylinder.
+			dd	%9						; Relative Sector (to start of partition -- also equals the partition's starting LBA value)
+			dd	%10						; Total sectors in partition.
 %endmacro
 
 	cli				; Clear interrupts.
@@ -85,7 +101,8 @@ error3:	mov si, message3
 
 ; Fallthrough.
 
-print:	mov ah, 0xE			; Select BIOS print function.
+print:	sti
+	mov ah, 0xE			; Select BIOS print function.
 	mov bh, 0			; Page number.
 	mov bl, 0x7			; Color.
 .loop:	lodsb				; Load byte to print.
@@ -108,6 +125,13 @@ message3: db "Volume Boot Record has wrong boot signature!", 0
 
 times	0x1B4-($-$$) db 0
 times	0xA db 0			; Optional unique disk ID.
-times	0x40 db 0			; Partition table.
+
+;times	0x40 db 0			; Partition table.
+
+	;		active flag,	starting head,	starting sector,	starting cylinder,	system ID,	ending head,	ending sector,	ending cylinder,	relative sector,	sectors in partition
+	partition	active,		0, 		2,			0,			0x7F,		0,		5,		0,			2,			3
+	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
+	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
+	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
 
 	dw 0xAA55			; Boot signature.
