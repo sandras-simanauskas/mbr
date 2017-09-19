@@ -11,7 +11,7 @@ cpu	8086
 ; Sector.
 
 	mov ax, [si+2]
-	add ax, 1
+	add ax, 1			; The sector after VBR.
 	mov cl, al
 	and cl, 0x3F
 
@@ -30,7 +30,7 @@ cpu	8086
 
 	jc error			; Read successful?
 
-	jmp 0x8000			; Jump to kernel.
+	jmp 0x8000			; Jump to the kernel.
 
 error:	mov si, message
 

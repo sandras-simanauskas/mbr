@@ -138,7 +138,12 @@ global	%1
 	lea	rbp,	[rbp-CELL-CELL]
 %endmacro
 
-%macro	IF	1
+%macro	JNZ	1
 	cmp	rax,	0
 	jnz	%1
+%endmacro
+
+%macro	JNs	1
+	cmp	rax,	0
+	jns	%1
 %endmacro
