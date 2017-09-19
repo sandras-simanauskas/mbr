@@ -2,6 +2,7 @@
 
 org	0x7C00
 bits	16
+cpu	8086
 
 ; Head.
 
@@ -24,12 +25,12 @@ bits	16
 
 	mov ah, 2			; Select BIOS disk read function.
 	mov al, 2			; Number of sectors to read.
-	mov bx, 0x7E00			; Destination.
+	mov bx, 0x8000			; Destination.
 	int 0x13			; Read.
 
 	jc error			; Read successful?
 
-	jmp 0x7E00			; Jump to kernel.
+	jmp 0x8000			; Jump to kernel.
 
 error:	mov si, message
 

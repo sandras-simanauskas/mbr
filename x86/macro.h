@@ -1,30 +1,25 @@
 ; rax	top of data stack
 ; rbx	scratch
-; rcx
-; rdx	top of stack extention for double precision
+; rcx	unused
+; rdx	top of data stack double precision extention
 
-; rsi
-; rdi
-; rbp	data stack
-; rsp	code stack
+; rsi	unused
+; rdi	unused
+; rbp	data stack pointer
+; rsp	code stack pointer
 
-; r8
-; r9
-; r10
-; r11
+; r8	unused
+; r9	unused
+; r10	unused
+; r11	unused
 
-; r12
-; r13
-; r14
-; r15
+; r12	unused
+; r13	unused
+; r14	unused
+; r15	unused
 
-%define	CELL		8
-%define	PAGE		0x1000
-
-%macro	BUFFER	1
-	DQ	%1
-	times	%1	DB	0
-%endmacro
+%define	CELL	8
+%define	PAGE	0x1000
 
 %macro	LOCAL	1
 	%1:
@@ -35,16 +30,6 @@ global	%1
 	%1:
 %endmacro
 
-%macro	RESERVE	1
-	times	%1	DB	0
-%endmacro
-
-%macro	ASCII	1
-	DQ	.end-.start
-.start:	DB	%1
-.end:
-%endmacro
-
 %macro	DROP	0
 	mov	rax,	[rbp]
 	lea	rbp,	[rbp-CELL]
@@ -53,11 +38,6 @@ global	%1
 %macro	DUP	0
 	lea	rbp,	[rbp+CELL]
 	mov	[rbp],	rax
-%endmacro
-
-%macro	LIT	1
-	DUP
-	mov	rax,	%1
 %endmacro
 
 %macro	NIP	0
@@ -79,20 +59,17 @@ global	%1
 	pop	rax
 %endmacro
 
+%macro	LIT	1
+	DUP
+	mov	rax,	%1
+%endmacro
+
 %macro	SHIFTL	0
 	shl	rax,	1
 %endmacro
 
 %macro	SHIFTR	0
 	shr	rax,	1
-%endmacro
-
-%macro	ROTATEL	0
-	rol	rax,	1
-%endmacro
-
-%macro	ROTATER	0
-	ror	rax,	1
 %endmacro
 
 %macro	NOT	0

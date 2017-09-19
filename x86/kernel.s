@@ -1,8 +1,6 @@
-; VBR.s - Volume Boot Record.
-
 %include	"macro.h"
 
-org	0x7E00
+org	0x8000
 bits	16
 
 ; Disable VGA hardware cursor.
@@ -130,6 +128,7 @@ LIT	1
 JNZ	LOOP
 
 LIT	'A'
+CALL	SWAP
 LIT	0x00000000000B8000
 
 LOCAL	BYTE_STORE
