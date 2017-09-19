@@ -1,5 +1,39 @@
 %include	"macro.h"
 
+%macro ISR_NOERRCODE 1
+isr%1:
+LIT	'X'
+LIT	0x00000000000B8000
+CALL	BYTE_STORE
+	iretq
+%endmacro
+
+%macro ISR_ERRCODE 1
+isr%1:	pop rax
+LIT	'Y'
+LIT	0x00000000000B8000
+CALL	BYTE_STORE
+	iretq
+%endmacro
+
+%macro IRQ 1
+isr%1:
+LIT	'Z'
+LIT	0x00000000000B8000
+CALL	BYTE_STORE
+	iretq
+%endmacro
+
+%macro	IDT_ENTRY 1
+	dw (((isr%1-$$)+0x8000)&0xFFFF)
+	dw 0x08   
+	db 0
+	db 10001110b
+	dw (((isr%1-$$)+0x8000)>>16)
+	dd (((isr%1-$$)+0x8000)>>32)
+	dd 0
+%endmacro
+
 org	0x8000
 bits	16
 
@@ -72,7 +106,8 @@ build_page_table:
 
 ; Enter long mode.
 
-	mov eax, 10100000b		; Set the PAE and PGE bit.
+	mov eax, cr4
+	or eax, 10100000b		; Set the PAE and PGE bit.	
 	mov cr4, eax
 
 	mov edi, 0x00001000
@@ -110,12 +145,74 @@ long_mode:
 
 	mov rbp, stack
 
+; Remap IRQs.
+
+	in al, 0x21
+	push ax
+
+	in al, 0xA1
+	push ax
+
+	mov al, 0x11
+	out 0x20, al
+ 
+	call io_wait
+
+	mov al, 0x11
+	out 0x20, al
+
+	call io_wait
+
+	mov al, 0x11
+	out 0xA0, al
+
+	call io_wait
+
+	mov al, 0x20
+	out 0x21, al
+
+	call io_wait
+
+	mov al, 0x28
+	out 0xA1, al
+
+	call io_wait
+
+	mov al, 4
+	out 0x21, al
+
+	call io_wait
+
+	mov al, 2
+	out 0xA1, al
+
+	call io_wait
+
+	mov al, 0x01
+	out 0x21, al
+
+	call io_wait
+
+	mov al, 0x01
+	out 0xA1, al
+
+	call io_wait
+ 
+	pop ax
+	out 0xA1, al
+
+	pop ax
+	out 0x21, al
+
+	lidt [idtd]			; Load IDT.
+	sti				; Set interrupts.
+
 ; Blank the screen.
 
 LIT	0x7020702070207020
 LIT	0x00000000000B8000
 LIT	500
-LOCAL	LOOP
+LOCAL	BLANK
 	PUSH
 	OVER
 	OVER
@@ -125,10 +222,9 @@ LIT	8
 	PULL
 LIT	1
 	SUB
-JNZ	LOOP
+JNZ	BLANK
 
 LIT	'A'
-CALL	SWAP
 LIT	0x00000000000B8000
 
 LOCAL	BYTE_STORE
@@ -140,8 +236,10 @@ LIT	0xFFFFFFFFFFFFFF00
 	OR
 	PULL
 	STORE
+	RET
 
-	hlt
+hang:	hlt
+	jmp hang
 
 LOCAL	BYTE_FETCH
 	FETCH
@@ -149,24 +247,112 @@ LIT	0xFF
 	AND
 	RET
 
-LOCAL	SHIFTL_LOOP
-	PUSH
-	SHIFTL
-	PULL
-LIT	1
-	SUB
-JNZ	SHIFTL_LOOP
-	DROP
-	RET
+io_wait:
+	out 0x80, al
+	ret
 
-LOCAL	SWAP
-	OVER
-	PUSH
-	PUSH
-	DROP
-	PULL
-	PULL
-	RET
+align	8
+
+ISR_NOERRCODE 0x00
+ISR_NOERRCODE 0x01
+ISR_NOERRCODE 0x02
+ISR_NOERRCODE 0x03
+ISR_NOERRCODE 0x04
+ISR_NOERRCODE 0x05
+ISR_NOERRCODE 0x06
+ISR_NOERRCODE 0x07
+ISR_ERRCODE   0x08
+ISR_NOERRCODE 0x09
+ISR_ERRCODE   0x0A
+ISR_ERRCODE   0x0B
+ISR_ERRCODE   0x0C
+ISR_ERRCODE   0x0D
+ISR_ERRCODE   0x0E
+ISR_NOERRCODE 0x0F
+ISR_NOERRCODE 0x10
+ISR_NOERRCODE 0x11
+ISR_NOERRCODE 0x12
+ISR_NOERRCODE 0x13
+ISR_NOERRCODE 0x14
+ISR_NOERRCODE 0x15
+ISR_NOERRCODE 0x16
+ISR_NOERRCODE 0x17
+ISR_NOERRCODE 0x18
+ISR_NOERRCODE 0x19
+ISR_NOERRCODE 0x1A
+ISR_NOERRCODE 0x1B
+ISR_NOERRCODE 0x1C
+ISR_NOERRCODE 0x1D
+ISR_NOERRCODE 0x1E
+ISR_NOERRCODE 0x1F
+IRQ 0x20
+IRQ 0x21
+IRQ 0x22
+IRQ 0x23
+IRQ 0x24
+IRQ 0x25
+IRQ 0x26
+IRQ 0x27
+IRQ 0x28
+IRQ 0x29
+IRQ 0x2A
+IRQ 0x2B
+IRQ 0x2C
+IRQ 0x2D
+IRQ 0x2E
+IRQ 0x2F
+
+idt:	IDT_ENTRY 0x00
+	IDT_ENTRY 0x01
+	IDT_ENTRY 0x02
+	IDT_ENTRY 0x03
+	IDT_ENTRY 0x04
+	IDT_ENTRY 0x05
+	IDT_ENTRY 0x06
+	IDT_ENTRY 0x07
+	IDT_ENTRY 0x08
+	IDT_ENTRY 0x09
+	IDT_ENTRY 0x0A
+	IDT_ENTRY 0x0B
+	IDT_ENTRY 0x0C
+	IDT_ENTRY 0x0D
+	IDT_ENTRY 0x0E
+	IDT_ENTRY 0x0F
+	IDT_ENTRY 0x10
+	IDT_ENTRY 0x11
+	IDT_ENTRY 0x12
+	IDT_ENTRY 0x13
+	IDT_ENTRY 0x14
+	IDT_ENTRY 0x15
+	IDT_ENTRY 0x16
+	IDT_ENTRY 0x17
+	IDT_ENTRY 0x18
+	IDT_ENTRY 0x19
+	IDT_ENTRY 0x1A
+	IDT_ENTRY 0x1B
+	IDT_ENTRY 0x1C
+	IDT_ENTRY 0x1D
+	IDT_ENTRY 0x1E
+	IDT_ENTRY 0x1F
+	IDT_ENTRY 0x20
+	IDT_ENTRY 0x21
+	IDT_ENTRY 0x22
+	IDT_ENTRY 0x23
+	IDT_ENTRY 0x24
+	IDT_ENTRY 0x25
+	IDT_ENTRY 0x26
+	IDT_ENTRY 0x27
+	IDT_ENTRY 0x28
+	IDT_ENTRY 0x29
+	IDT_ENTRY 0x2A
+	IDT_ENTRY 0x2B
+	IDT_ENTRY 0x2C
+	IDT_ENTRY 0x2D
+	IDT_ENTRY 0x2E
+	IDT_ENTRY 0x2F
+
+idtd:	dw (16*48)-1
+	dq idt
 
 gdt:	dw 23
 	dd gdt
@@ -177,4 +363,4 @@ gdt:	dw 23
 
 stack:	times 8 dq 0
 
-times	1024-($-$$) db 0
+times	4096-($-$$) db 0

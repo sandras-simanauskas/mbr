@@ -24,7 +24,7 @@ cpu	8086
 ; Load VBR.
 
 	mov ah, 2			; Select BIOS disk read function.
-	mov al, 2			; Number of sectors to read.
+	mov al, 8			; Number of sectors to read.
 	mov bx, 0x8000			; Destination.
 	int 0x13			; Read.
 
@@ -36,8 +36,7 @@ error:	mov si, message
 
 ; Fallthrough.
 
-print:	sti
-	mov ah, 0xE			; Select BIOS print function.
+print:	mov ah, 0xE			; Select BIOS print function.
 	mov bh, 0			; Page number.
 	mov bl, 0x7			; Color.
 .loop:	lodsb				; Load byte to print.

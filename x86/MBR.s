@@ -101,8 +101,7 @@ error3:	mov si, message3
 
 ; Fallthrough.
 
-print:	sti
-	mov ah, 0xE						; Select BIOS print function.
+print:	mov ah, 0xE						; Select BIOS print function.
 	mov bh, 0						; Page number.
 	mov bl, 0x7						; Color.
 .loop:	lodsb							; Load byte to print.
@@ -126,10 +125,8 @@ message3: db "Volume Boot Record has wrong boot signature!", 0
 times	0x1B4-($-$$) db 0
 times	0xA db 0						; Optional unique disk ID.
 
-;times	0x40 db 0						; Partition table.
-
 	;		active flag,	starting head,	starting sector,	starting cylinder,	system ID,	ending head,	ending sector,	ending cylinder,	relative sector,	sectors in partition
-	partition	active,		0, 		2,			0,			0x7F,		0,		5,		0,			2,			3
+	partition	active,		0, 		2,			0,			0x7F,		0,		11,		0,			2,			9
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
