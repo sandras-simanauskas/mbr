@@ -5,7 +5,7 @@ all:
 	cat MBR VBR kernel > disk
 
 clean:
-	rm MBR VBR kernel disk
+	rm -f MBR VBR kernel disk
 
 run: all
 	qemu-system-x86_64 -hda disk
