@@ -10,12 +10,12 @@
 
 ## BUILD
 
-	make
+    make
 
 ## RUN
 
-	make run
+    make run
 
 ## CLEAN UP
 
-	make clean
+    make clean
