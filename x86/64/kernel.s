@@ -1,26 +1,26 @@
-%include	"x86/64/primitives.h"
+%include "x86/64/primitives.h"
 
 %macro ISR_NOERRCODE 1
-isr%1:
+ISR%1:
 LIT	MESSAGE_INTERRUPT
 CALL	STRING_PRINT
 	iretq
 %endmacro
 
 %macro ISR_ERRCODE 1
-isr%1:	pop rax
+ISR%1:	pop rax
 LIT	MESSAGE_INTERRUPT
 CALL	STRING_PRINT
 	iretq
 %endmacro
 
 %macro	IDT_ENTRY 1
-	dw (((isr%1-$$)+0x8000)&0xFFFF)
+	dw (((ISR%1-$$)+0x8000)&0xFFFF)
 	dw 0x08   
 	db 0
 	db 10001110b
-	dw (((isr%1-$$)+0x8000)>>16)
-	dd (((isr%1-$$)+0x8000)>>32)
+	dw (((ISR%1-$$)+0x8000)>>16)
+	dd (((ISR%1-$$)+0x8000)>>32)
 	dd 0
 %endmacro
 
@@ -135,7 +135,7 @@ LIT	X
 LIT	158
 	SUB
 	DROP
-JNS	NEW_LINE
+JNS	LINE
 LIT	X
 	FETCH
 LIT	2
@@ -144,7 +144,7 @@ LIT	X
 	STORE
 	RET
 
-LOCAL	NEW_LINE
+LOCAL	LINE
 LIT	0
 LIT	X
 	STORE
@@ -153,21 +153,21 @@ LIT	Y
 LIT	24
 	SUB
 	DROP
-JNS	NEW_PAGE
+JNS	PAGE
 LIT	Y
 	FETCH
 LIT	1
 	ADD
 LIT	Y
 	STORE
-CALL	NEW_LINE
+CALL	LINE
 	RET
 
-LOCAL	NEW_PAGE
+LOCAL	PAGE
 LIT	0
 LIT	Y
 	STORE
-CALL	CLEAR_LINE
+CALL	CLEAR
 	RET
 
 LOCAL	STRING_PRINT
@@ -190,7 +190,7 @@ LIT	1
 JNZ	.LOOP
 	RET
 
-LOCAL	CLEAR_LINE
+LOCAL	CLEAR
 LIT	0x7020702070207020
 LIT	Y
 	FETCH
@@ -348,13 +348,6 @@ MESSAGE_INTERRUPT:
 
 idtd:	dw (16*48)-1
 	dq idt
-
-gdt:	dw 23
-	dd gdt
-	dw 0
-
-	dq 0x00209A0000000000
-	dq 0x0000920000000000
 
 stack:	times 8 dq 0
 
