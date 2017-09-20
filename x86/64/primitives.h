@@ -19,7 +19,6 @@
 ; r15	unused
 
 %define	CELL	8
-%define	PAGE	0x1000
 
 %macro	LOCAL	1
 	%1:
