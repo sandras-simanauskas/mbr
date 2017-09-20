@@ -126,7 +126,7 @@ times	0x1B4-($-$$) db 0
 times	0xA db 0						; Optional unique disk ID.
 
 	;		active flag,	starting head,	starting sector,	starting cylinder,	system ID,	ending head,	ending sector,	ending cylinder,	relative sector,	sectors in partition
-	partition	active,		0, 		2,			0,			0x7F,		0,		11,		0,			2,			9
+	partition	active,		0, 		2,			0,			0x7F,		0,		13,		0,			2,			11
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
 	partition	inactive,	0,		0,			0,			0,		0,		0,		0,			0,			0
