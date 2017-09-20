@@ -30,6 +30,12 @@ global	%1
 	%1:
 %endmacro
 
+%macro	STRING	2
+%1:	dq	.end-.start
+.start:	db	%2
+.end:
+%endmacro
+
 %macro	DROP	0
 	mov	rax,	[rbp]
 	lea	rbp,	[rbp-CELL]
