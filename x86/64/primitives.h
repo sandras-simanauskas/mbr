@@ -74,7 +74,7 @@ global	%1
 %endmacro
 
 %macro	SHIFTR	0
-	shr	rax,	1
+	sar	rax,	1
 %endmacro
 
 %macro	NOT	0
@@ -148,7 +148,6 @@ global	%1
 	jnz	%1
 %endmacro
 
-%macro	JNs	1
-	cmp	rax,	0
-	jns	%1
+%macro	JS	1
+	js	%1
 %endmacro

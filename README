@@ -1,4 +1,4 @@
-# sis
+# SiS
 
 * Forth-like system.
 * Initially targeting x86-64.
@@ -7,6 +7,7 @@
 * Minimal dependecies for building on Unix-like systems.
 * Long term goal is to become self-hosting.
 * Then start porting.
+* Not sure if I settled on the name yet.
 
 ## PREREQUISITES
 
