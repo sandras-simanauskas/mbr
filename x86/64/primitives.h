@@ -144,7 +144,6 @@ global	%1
 %endmacro
 
 %macro	JNZ	1
-	cmp	rax,	0
 	jnz	%1
 %endmacro
 
