@@ -8,7 +8,8 @@ CALL	STRING_PRINT
 %endmacro
 
 %macro ISR_ERRCODE 1
-ISR%1:	pop rax
+ISR%1:
+pop	rax
 LIT	MESSAGE_INTERRUPT
 CALL	STRING_PRINT
 	iretq
