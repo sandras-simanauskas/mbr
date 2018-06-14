@@ -1,7 +1,7 @@
 ; rax	top of data stack
 ; rbx	scratch
 ; rcx	unused
-; rdx	top of data stack double precision extention
+; rdx	double precision extension for top of data stack
 
 ; rsi	unused
 ; rdi	unused
