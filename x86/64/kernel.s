@@ -1,4 +1,4 @@
-%include "x86/64/primitives.h"
+%include "x86/64/primitives.s"
 
 %macro ISR_NOERRCODE 1
 ISR%1:
