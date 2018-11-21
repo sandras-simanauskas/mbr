@@ -18,7 +18,7 @@
 ; r14	unused
 ; r15	unused
 
-CELL	equ	8
+%define	CELL	8
 
 %macro	LOCAL	1
 	%1:
